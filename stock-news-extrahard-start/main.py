@@ -8,7 +8,7 @@ msg = EmailMessage()
 STOCK = "TSLA"
 COMPANY_NAME = "Tesla Inc"
 my_gmail = "testing.brainstrom@gmail.com"
-my_password = "lotzylecosbwmpiu"
+my_password = "abcdefghijklmnop"
 
 parameter1 = {
     "function": "TIME_SERIES_DAILY",
@@ -19,24 +19,24 @@ parameter1 = {
 
 parameter2 = {
     "q": COMPANY_NAME,
-    "from": "2026-09-16",
+    "from": "2026-09-18",
     "sortBy": "popularity",
     "apiKey": "ead2476047ad49969666daacdc838233"
 }
 
 response1 = requests.get("https://www.alphavantage.co/query", params=parameter1)
 response1.raise_for_status()
-data1 = float(response1.json()["Time Series (Daily)"]["2026-09-17"]["4. close"])
-data2 = float(response1.json()["Time Series (Daily)"]["2026-09-16"]["4. close"])
+data1 = float(response1.json()["Time Series (Daily)"]["2026-09-18"]["4. close"])
+data2 = float(response1.json()["Time Series (Daily)"]["2026-09-17"]["4. close"])
 
 percentage_change = ((data1-data2)/data2)*100
-
+print(percentage_change)
 
 response2 = requests.get("https://newsapi.org/v2/everything", params=parameter2)
 response2.raise_for_status()
 
 
-if percentage_change > 1 or percentage_change < -1:
+if percentage_change > 1 or percentage_change < -0.5:
     title0 = response2.json()["articles"][0]["title"]
     content0 = response2.json()["articles"][0]["description"]
 
@@ -63,5 +63,3 @@ if percentage_change > 1 or percentage_change < -1:
         connection.starttls()
         connection.login(user=my_gmail, password=my_password)
         connection.send_message(msg)
-
-
