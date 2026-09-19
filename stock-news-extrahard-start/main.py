@@ -1,7 +1,14 @@
 import requests
+import smtplib
+from email.message import EmailMessage
+
+msg = EmailMessage()
+
 
 STOCK = "TSLA"
 COMPANY_NAME = "Tesla Inc"
+my_gmail = "testing.brainstrom@gmail.com"
+my_password = "lotzylecosbwmpiu"
 
 parameter1 = {
     "function": "TIME_SERIES_DAILY",
@@ -12,44 +19,49 @@ parameter1 = {
 
 parameter2 = {
     "q": COMPANY_NAME,
-    "from": "2026-09-15",
-    "sortBy": "publishedAt",
+    "from": "2026-09-16",
+    "sortBy": "popularity",
     "apiKey": "ead2476047ad49969666daacdc838233"
 }
 
-## STEP 1: Use https://www.alphavantage.co
-# When STOCK price increase/decreases by 5% between yesterday and the day before yesterday then print("Get News").
-response = requests.get("https://www.alphavantage.co/query", params=parameter1)
-response.raise_for_status()
-data1 = float(response.json()["Time Series (Daily)"]["2026-09-17"]["4. close"])
-data2 = float(response.json()["Time Series (Daily)"]["2026-09-16"]["4. close"])
+response1 = requests.get("https://www.alphavantage.co/query", params=parameter1)
+response1.raise_for_status()
+data1 = float(response1.json()["Time Series (Daily)"]["2026-09-17"]["4. close"])
+data2 = float(response1.json()["Time Series (Daily)"]["2026-09-16"]["4. close"])
 
 percentage_change = ((data1-data2)/data2)*100
 
+
+response2 = requests.get("https://newsapi.org/v2/everything", params=parameter2)
+response2.raise_for_status()
+
+
 if percentage_change > 1 or percentage_change < -1:
-    print("Get Data")
+    title0 = response2.json()["articles"][0]["title"]
+    content0 = response2.json()["articles"][0]["description"]
 
+    title1 = response2.json()["articles"][1]["title"]
+    content1 = response2.json()["articles"][1]["description"]
 
-## STEP 2: Use https://newsapi.org
-# Instead of printing ("Get News"), actually get the first 3 news pieces for the COMPANY_NAME. 
-response1 = requests.get("https://newsapi.org/v2/everything", params=parameter2)
-response1.raise_for_status()
-data1 = response1.json()["articles"]
-print(data1)
+    title2 = response2.json()["articles"][2]["title"]
+    content2 = response2.json()["articles"][2]["description"]
 
+    msg["Subject"] = "Information from Stock News!"
+    msg["From"] = my_gmail
+    msg["To"] = "mauryaravishverma123@gmail.com"
 
-## STEP 3: Use https://www.twilio.com
-# Send a seperate message with the percentage change and each article's title and description to your phone number. 
+    msg.set_content(
+        f"Title: {title0}\n"
+        f"Content: {content0}\n\n"
+        f"Title: {title1}\n"
+        f"Content: {content1}\n\n"
+        f"Title: {title2}\n"
+        f"Content: {content2}"
+    )
 
+    with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+        connection.starttls()
+        connection.login(user=my_gmail, password=my_password)
+        connection.send_message(msg)
 
-#Optional: Format the SMS message like this: 
-"""
-TSLA: 🔺2%
-Headline: Were Hedge Funds Right About Piling Into Tesla Inc. (TSLA)?. 
-Brief: We at Insider Monkey have gone over 821 13F filings that hedge funds and prominent investors are required to file by the SEC The 13F filings show the funds' and investors' portfolio positions as of March 31st, near the height of the coronavirus market crash.
-or
-"TSLA: 🔻5%
-Headline: Were Hedge Funds Right About Piling Into Tesla Inc. (TSLA)?. 
-Brief: We at Insider Monkey have gone over 821 13F filings that hedge funds and prominent investors are required to file by the SEC The 13F filings show the funds' and investors' portfolio positions as of March 31st, near the height of the coronavirus market crash.
-"""
 
